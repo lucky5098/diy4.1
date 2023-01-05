@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="d4aeaf7c-d55d-40f4-8106-07c4fba4184a" >
+		<db:my-sql-connection host="mudb.learn.mulesoft.com" port="3306" user="mule" password="mule" database="training" />
+	</db:config>
+	<flow name="get-accounts" doc:id="19f17fe5-9f52-43da-8960-b213e6b097f4" >
+		<db:select doc:name="Select" doc:id="2fcc754f-d967-44a0-8782-e66d5a69ff47" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from flights_customers;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="b5c0bf27-258a-4643-b1e1-dd2ac69a7975">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	address: (((payload01.street default "") ++ (payload01.city default "")) ++ (payload01.postal default "")) ++ (payload01.country default ""),
+	air_miles: payload01.miles default 0,
+	name: payload01.name default "",
+	created_at: payload01.creationDate as String,
+	id: payload01.accountID as Number,
+	"type": payload01.accountType default ""
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
